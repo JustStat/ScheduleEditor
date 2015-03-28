@@ -15,11 +15,12 @@ function GetJoin(ATag: Integer): String;
 var
   I: integer;
 begin
-  with TablesMetaData.Tables[ATag] do begin
+  with TablesMetaData.Tables[ATag] do
+  begin
     Result := TableName;
     for I := 0 to High(TableFields) do
       with TableFields[I] do
-        if Referenses.Visible then begin
+        if Referenses <> Nil then begin  //что-то нетак
           Result := Result + ' INNER JOIN ' + Referenses.Table + ' ON '
                  + TableName + '.' + FieldName + ' = '
                  + Referenses.Table + '.' + Referenses.Field;
@@ -35,7 +36,8 @@ begin
   Result := 'SELECT ';
   with TablesMetaData.Tables[ATag] do
     for I := 0 to High(TableFields) do
-      with TableFields[I] do begin
+      with TableFields[I] do
+      begin
         if FieldVisible then
           Result := Result + TableName + '.' + FieldName + ', ';
         if Referenses.Visible then

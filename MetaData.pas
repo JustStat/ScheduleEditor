@@ -3,7 +3,7 @@ unit MetaData;
 interface
 
 type
-  TReferenses = record
+  TReference = class
     Table: String;
     Field: String;
     Name: String;
@@ -17,8 +17,11 @@ type
     FieldName: String;
     FieldCaption: String;
     FieldWidth: Integer;
-    Referenses: TReferenses;
+    Referenses: TReference;
     FieldVisible: Boolean;
+    procedure AddReferense(ARefTable: String = ''; ARefField: String = '';
+      ARefName: String = ''; ARefCaption: String = ''; ARefWidth: Integer = 0;
+      ARefVisible: Boolean = False);
   end;
 
 type
@@ -27,10 +30,8 @@ type
     TableCaption: String;
     TableFields: array of TField;
     function GetFieldsCount(ATag: Integer): Integer;
-    procedure AddField(AFieldName, AFieldCaption: String; AFieldWidth: Integer;
-      AFieldVisible: Boolean; ARefTable: String = ''; ARefField: String = '';
-      ARefName: String = ''; ARefCaption: String = ''; ARefWidth: Integer = 0;
-      ARefVisible: Boolean = False);
+    function AddField(AFieldName, AFieldCaption: String; AFieldWidth: Integer;
+      AFieldVisible: Boolean): TField;
   end;
 
 type
@@ -49,10 +50,8 @@ implementation
 
 { TMData }
 
-procedure TTable.AddField(AFieldName, AFieldCaption: String;
-  AFieldWidth: Integer; AFieldVisible: Boolean; ARefTable: String = '';
-  ARefField: String = ''; ARefName: String = ''; ARefCaption: String = ''; ARefWidth: Integer = 0;
-  ARefVisible: Boolean = False);
+function TTable.AddField(AFieldName, AFieldCaption: String;
+  AFieldWidth: Integer; AFieldVisible: Boolean): TField;
 begin
   SetLength(TableFields, Length(TableFields) + 1);
   TableFields[high(TableFields)] := TField.Create;
@@ -62,13 +61,8 @@ begin
     FieldCaption := AFieldCaption;
     FieldWidth := AFieldWidth;
     FieldVisible := AFieldVisible;
-    Referenses.Table := ARefTable;
-    Referenses.Field := ARefField;
-    Referenses.Name := ARefName;
-    Referenses.Caption := ARefCaption;
-    Referenses.Width := ARefWidth;
-    Referenses.Visible := ARefVisible;
   end;
+  Result := TableFields[high(TableFields)];
 end;
 
 function TMData.AddTable(ATableName, ATableCaption: string): TTable;
@@ -95,6 +89,20 @@ begin
   Result := Length(TablesMetaData.Tables[ATag].TableFields)
 end;
 
+{ TField }
+
+procedure TField.AddReferense(ARefTable, ARefField, ARefName,
+  ARefCaption: String; ARefWidth: Integer; ARefVisible: Boolean);
+begin
+  Referenses := TReference.Create;
+  Referenses.Table := ARefTable;
+  Referenses.Field := ARefField;
+  Referenses.Name := ARefName;
+  Referenses.Caption := ARefCaption;
+  Referenses.Width := ARefWidth;
+  Referenses.Visible := ARefVisible;
+end;
+
 initialization
 
 TablesMetaData := TMData.Create;
@@ -114,45 +122,58 @@ begin
   end;
   with AddTable('DISCIPLINE_PROFESSOR', 'Преподаватели - Дисциплины') do
   begin
-    AddField('PROF_ID', 'ID Преподавателя', 100, False, 'PROFESSORS', 'PROF_ID',
-      'PROF_NAME', 'ФИО Перподавателя', 200, True);
-    AddField('DIS_ID', 'ID Дисциплины', 100, False, 'DISCIPLINES', 'DIS_ID',
-      'DIS_CAPTION', 'Дисциплина', 200, True);
+     AddField('PROF_ID', 'ID Преподавателя', 100, False).
+      AddReferense('PROFESSORS', 'PROF_ID', 'PROF_NAME',
+        'ФИО Перподавателя', 200, True);
+     AddField('DIS_ID', 'ID Дисциплины', 100, False).
+      AddReferense('DISCIPLINES', 'DIS_ID', 'DIS_CAPTION', 'Дисциплина',
+        200, True);
   end;
   with AddTable('GROUP_DISCIPLINE', 'Группы - Дисциплины') do
   begin
-    AddField('GROUP_ID', 'ID Группы', 100, False, 'GROUPS', 'GROUP_ID',
-      'GROUP_NUMBER', 'Группа', 100, True);
-    AddField('DISCIPLINE_ID', 'ID Дисциплины', 100, False, 'DISCIPLINES',
-      'DIS_ID', 'DIS_CAPTION', 'Дисциплина', 200, True);
+     AddField('GROUP_ID', 'ID Группы', 100, False).
+      AddReferense('GROUPS', 'GROUP_ID', 'GROUP_NUMBER', 'Группа',
+        100, True);
+    AddField('DISCIPLINE_ID', 'ID Дисциплины', 100, False).
+      AddReferense('DISCIPLINES', 'DIS_ID', 'DIS_CAPTION', 'Дисциплина',
+        200, True);
   end;
+
   with AddTable('LESSON_TYPES', 'Типы Занятий') do
   begin
     AddField('LES_TYPE_ID', 'ID', 50, False);
     AddField('LES_TYPE_CAPTION', 'Тип занятия', 200, True);
   end;
+
   with AddTable('PROFESSORS', 'Преподаватели') do
   begin
     AddField('PROF_ID', 'ID', 50, False);
     AddField('PROF_NAME', 'ФИО', 200, True);
   end;
+
   with AddTable('SCHEDULE', 'Расписание') do
   begin
     AddField('ID', 'ID', 50, False);
-    AddField('GROUP_ID', 'ID Группы', 100, False, 'GROUPS', 'GROUP_ID',
-      'GROUP_NUMBER', 'Группа', 100, True);
-    AddField('LES_TYPE_ID', 'ID Типа Занятия', 100, False, 'LESSON_TYPES',
+    AddField('GROUP_ID', 'ID Группы', 100, False).
+      AddReferense('GROUPS', 'GROUP_ID', 'GROUP_NUMBER', 'Группа', 100, True);
+    AddField('LES_TYPE_ID', 'ID Типа Занятия', 100, False).
+        AddReferense('LESSON_TYPES',
       'LES_TYPE_ID', 'LES_TYPE_CAPTION', 'Тип Занятия', 200, False);
-    AddField('DIS_ID', 'ID Дисциплины', 100, False, 'DISCIPLINES', 'DIS_ID',
+    AddField('DIS_ID', 'ID Дисциплины', 100, False).
+        AddReferense('DISCIPLINES', 'DIS_ID',
       'DIS_CAPTION', 'Дисциплина', 200, True);
-    AddField('TIME_ID', 'ID Пары', 100, False, 'TIMES', 'TIME_ID', 'TIME_CAPTION' ,'Время',
-      100, True);
-    AddField('AUD_ID', 'ID Аудитории', 100, False, 'AUDITORIES', 'AUD_ID', 'AUD_CAPTION',
-      'Аудитория', 100, True);
-    AddField('PROF_ID', 'ID Преподавателя', 100, False, 'PROFESSORS', 'PROF_ID', 'PROF_NAME',
-      'ФИО Преподавателя', 200, True);
-    AddField('WEEKDAY_ID', 'ID Дня', 100, False, 'WEEKDAYS', 'WEEKDAY_ID', 'WEEKDAY_CAPTION',
-      'День Недели', 100, True);
+    AddField('TIME_ID', 'ID Пары', 100, False).
+        AddReferense('TIMES', 'TIME_ID',
+      'TIME_CAPTION', 'Время', 100, True);
+   AddField('AUD_ID', 'ID Аудитории', 100, False).
+        AddReferense( 'AUDITORIES', 'AUD_ID',
+      'AUD_CAPTION', 'Аудитория', 100, True);
+   AddField('PROF_ID', 'ID Преподавателя', 100, False).
+        AddReferense( 'PROFESSORS', 'PROF_ID',
+      'PROF_NAME', 'ФИО Преподавателя', 200, True);
+   AddField('WEEKDAY_ID', 'ID Дня', 100, False).
+        AddReferense('WEEKDAYS', 'WEEKDAY_ID',
+      'WEEKDAY_CAPTION', 'День Недели', 100, True);
   end;
   with AddTable('TIMES', 'Время') do
   begin

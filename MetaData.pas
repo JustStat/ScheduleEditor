@@ -9,7 +9,6 @@ type
     Name: String;
     Caption: String;
     Width: Integer;
-    Visible: Boolean;
   end;
 
 type
@@ -20,8 +19,7 @@ type
     References: TReference;
     FieldVisible: Boolean;
     procedure AddReferense(ARefTable: String = ''; ARefField: String = '';
-      ARefName: String = ''; ARefCaption: String = ''; ARefWidth: Integer = 0;
-      ARefVisible: Boolean = False);
+      ARefName: String = ''; ARefCaption: String = ''; ARefWidth: Integer = 0);
   end;
 
 type
@@ -92,7 +90,7 @@ end;
 { TField }
 
 procedure TField.AddReferense(ARefTable, ARefField, ARefName,
-  ARefCaption: String; ARefWidth: Integer; ARefVisible: Boolean);
+  ARefCaption: String; ARefWidth: Integer);
 begin
   References := TReference.Create;
   References.Table := ARefTable;
@@ -100,7 +98,6 @@ begin
   References.Name := ARefName;
   References.Caption := ARefCaption;
   References.Width := ARefWidth;
-  References.Visible := ARefVisible;
 end;
 
 initialization
@@ -124,19 +121,19 @@ begin
   begin
      AddField('PROF_ID', 'ID Преподавателя', 100, False).
       AddReferense('PROFESSORS', 'PROF_ID', 'PROF_NAME',
-        'ФИО Перподавателя', 200, True);
+        'ФИО Перподавателя', 200);
      AddField('DIS_ID', 'ID Дисциплины', 100, False).
       AddReferense('DISCIPLINES', 'DIS_ID', 'DIS_CAPTION', 'Дисциплина',
-        200, True);
+        200);
   end;
   with AddTable('GROUP_DISCIPLINE', 'Группы - Дисциплины') do
   begin
      AddField('GROUP_ID', 'ID Группы', 100, False).
       AddReferense('GROUPS', 'GROUP_ID', 'GROUP_NUMBER', 'Группа',
-        100, True);
+        100);
     AddField('DISCIPLINE_ID', 'ID Дисциплины', 100, False).
       AddReferense('DISCIPLINES', 'DIS_ID', 'DIS_CAPTION', 'Дисциплина',
-        200, True);
+        200);
   end;
 
   with AddTable('LESSON_TYPES', 'Типы Занятий') do
@@ -155,25 +152,25 @@ begin
   begin
     AddField('ID', 'ID', 50, False);
     AddField('GROUP_ID', 'ID Группы', 100, False).
-      AddReferense('GROUPS', 'GROUP_ID', 'GROUP_NUMBER', 'Группа', 100, True);
+      AddReferense('GROUPS', 'GROUP_ID', 'GROUP_NUMBER', 'Группа', 100);
     AddField('LES_TYPE_ID', 'ID Типа Занятия', 100, False).
         AddReferense('LESSON_TYPES',
-      'LES_TYPE_ID', 'LES_TYPE_CAPTION', 'Тип Занятия', 200, False);
+      'LES_TYPE_ID', 'LES_TYPE_CAPTION', 'Тип Занятия', 200);
     AddField('DIS_ID', 'ID Дисциплины', 100, False).
         AddReferense('DISCIPLINES', 'DIS_ID',
-      'DIS_CAPTION', 'Дисциплина', 200, True);
+      'DIS_CAPTION', 'Дисциплина', 200);
     AddField('TIME_ID', 'ID Пары', 100, False).
         AddReferense('TIMES', 'TIME_ID',
-      'TIME_CAPTION', 'Время', 100, True);
+      'TIME_CAPTION', 'Время', 100);
    AddField('AUD_ID', 'ID Аудитории', 100, False).
         AddReferense( 'AUDITORIES', 'AUD_ID',
-      'AUD_CAPTION', 'Аудитория', 100, True);
+      'AUD_CAPTION', 'Аудитория', 100);
    AddField('PROF_ID', 'ID Преподавателя', 100, False).
         AddReferense( 'PROFESSORS', 'PROF_ID',
-      'PROF_NAME', 'ФИО Преподавателя', 200, True);
+      'PROF_NAME', 'ФИО Преподавателя', 200);
    AddField('WEEKDAY_ID', 'ID Дня', 100, False).
         AddReferense('WEEKDAYS', 'WEEKDAY_ID',
-      'WEEKDAY_CAPTION', 'День Недели', 100, True);
+      'WEEKDAY_CAPTION', 'День Недели', 100);
   end;
   with AddTable('TIMES', 'Время') do
   begin

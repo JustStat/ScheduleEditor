@@ -56,7 +56,6 @@ begin
           FieldName := References.Name;
           Title.Caption := References.Caption;
           Width := References.Width;
-          Visible := References.Visible;
         end;
       end;
   DirQuery.Active := False;

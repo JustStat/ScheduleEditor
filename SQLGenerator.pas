@@ -20,10 +20,10 @@ begin
     Result := TableName;
     for I := 0 to High(TableFields) do
       with TableFields[I] do
-        if Referenses <> Nil then begin  //что-то нетак
-          Result := Result + ' INNER JOIN ' + Referenses.Table + ' ON '
+        if References <> Nil then begin  //что-то нетак
+          Result := Result + ' INNER JOIN ' + References.Table + ' ON '
                  + TableName + '.' + FieldName + ' = '
-                 + Referenses.Table + '.' + Referenses.Field;
+                 + References.Table + '.' + References.Field;
         end;
   end;
 end;
@@ -40,8 +40,8 @@ begin
       begin
         if FieldVisible then
           Result := Result + TableName + '.' + FieldName + ', ';
-        if Referenses.Visible then
-          Result := Result +  Referenses.Table + '.' + Referenses.Name + ', ';
+        if References <>  Nil then
+          Result := Result +  References.Table + '.' + References.Name + ', ';
       end;
 
   Delete(Result, Length(Result) - 1, 2);

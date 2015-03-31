@@ -17,7 +17,7 @@ type
     FieldName: String;
     FieldCaption: String;
     FieldWidth: Integer;
-    Referenses: TReference;
+    References: TReference;
     FieldVisible: Boolean;
     procedure AddReferense(ARefTable: String = ''; ARefField: String = '';
       ARefName: String = ''; ARefCaption: String = ''; ARefWidth: Integer = 0;
@@ -94,13 +94,13 @@ end;
 procedure TField.AddReferense(ARefTable, ARefField, ARefName,
   ARefCaption: String; ARefWidth: Integer; ARefVisible: Boolean);
 begin
-  Referenses := TReference.Create;
-  Referenses.Table := ARefTable;
-  Referenses.Field := ARefField;
-  Referenses.Name := ARefName;
-  Referenses.Caption := ARefCaption;
-  Referenses.Width := ARefWidth;
-  Referenses.Visible := ARefVisible;
+  References := TReference.Create;
+  References.Table := ARefTable;
+  References.Field := ARefField;
+  References.Name := ARefName;
+  References.Caption := ARefCaption;
+  References.Width := ARefWidth;
+  References.Visible := ARefVisible;
 end;
 
 initialization

@@ -50,12 +50,13 @@ begin
           Width := FieldWidth;
           Visible := FieldVisible;
         end;
+        if References <> Nil then
         with DBGrid1.Columns.Add do
         begin
-          FieldName := Referenses.Name;
-          Title.Caption := Referenses.Caption;
-          Width := Referenses.Width;
-          Visible := Referenses.Visible;
+          FieldName := References.Name;
+          Title.Caption := References.Caption;
+          Width := References.Width;
+          Visible := References.Visible;
         end;
       end;
   DirQuery.Active := False;

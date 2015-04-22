@@ -12,12 +12,16 @@ type
   end;
 
 type
+  TSort = (None, Up, Down);
+
+type
   TField = class
     FieldName: String;
     FieldCaption: String;
     FieldWidth: Integer;
     References: TReference;
     FieldVisible: Boolean;
+    Sorted: TSort;
     procedure AddReferense(ARefTable: String = ''; ARefField: String = '';
       ARefName: String = ''; ARefCaption: String = ''; ARefWidth: Integer = 0);
   end;
@@ -29,7 +33,7 @@ type
     TableFields: array of TField;
     function GetFieldsCount(ATag: Integer): Integer;
     function AddField(AFieldName, AFieldCaption: String; AFieldWidth: Integer;
-      AFieldVisible: Boolean): TField;
+      AFieldVisible: Boolean; ASorted : TSort = None): TField;
   end;
 
 type
@@ -49,7 +53,7 @@ implementation
 { TMData }
 
 function TTable.AddField(AFieldName, AFieldCaption: String;
-  AFieldWidth: Integer; AFieldVisible: Boolean): TField;
+  AFieldWidth: Integer; AFieldVisible: Boolean; ASorted : TSort = None): TField;
 begin
   SetLength(TableFields, Length(TableFields) + 1);
   TableFields[high(TableFields)] := TField.Create;
@@ -59,6 +63,7 @@ begin
     FieldCaption := AFieldCaption;
     FieldWidth := AFieldWidth;
     FieldVisible := AFieldVisible;
+    Sorted := ASorted;
   end;
   Result := TableFields[high(TableFields)];
 end;
@@ -119,21 +124,20 @@ begin
   end;
   with AddTable('DISCIPLINE_PROFESSOR', 'Преподаватели - Дисциплины') do
   begin
-     AddField('PROF_ID', 'ID Преподавателя', 100, False).
-      AddReferense('PROFESSORS', 'PROF_ID', 'PROF_NAME',
-        'ФИО Перподавателя', 200);
-     AddField('DIS_ID', 'ID Дисциплины', 100, False).
-      AddReferense('DISCIPLINES', 'DIS_ID', 'DIS_CAPTION', 'Дисциплина',
-        200);
+    AddField('ID','ID', 50, False);
+    AddField('PROF_ID', 'ID Преподавателя', 100, False)
+      .AddReferense('PROFESSORS', 'PROF_ID', 'PROF_NAME',
+      'ФИО Перподавателя', 200);
+    AddField('DIS_ID', 'ID Дисциплины', 100, False).AddReferense('DISCIPLINES',
+      'DIS_ID', 'DIS_CAPTION', 'Дисциплина', 200);
   end;
   with AddTable('GROUP_DISCIPLINE', 'Группы - Дисциплины') do
   begin
-     AddField('GROUP_ID', 'ID Группы', 100, False).
-      AddReferense('GROUPS', 'GROUP_ID', 'GROUP_NUMBER', 'Группа',
-        100);
-    AddField('DISCIPLINE_ID', 'ID Дисциплины', 100, False).
-      AddReferense('DISCIPLINES', 'DIS_ID', 'DIS_CAPTION', 'Дисциплина',
-        200);
+    AddField('ID','ID', 50, False);
+    AddField('GROUP_ID', 'ID Группы', 100, False).AddReferense('GROUPS',
+      'GROUP_ID', 'GROUP_NUMBER', 'Группа', 100);
+    AddField('DISCIPLINE_ID', 'ID Дисциплины', 100, False)
+      .AddReferense('DISCIPLINES', 'DIS_ID', 'DIS_CAPTION', 'Дисциплина', 200);
   end;
 
   with AddTable('LESSON_TYPES', 'Типы Занятий') do
@@ -151,26 +155,22 @@ begin
   with AddTable('SCHEDULE', 'Расписание') do
   begin
     AddField('ID', 'ID', 50, False);
-    AddField('GROUP_ID', 'ID Группы', 100, False).
-      AddReferense('GROUPS', 'GROUP_ID', 'GROUP_NUMBER', 'Группа', 100);
-    AddField('LES_TYPE_ID', 'ID Типа Занятия', 100, False).
-        AddReferense('LESSON_TYPES',
-      'LES_TYPE_ID', 'LES_TYPE_CAPTION', 'Тип Занятия', 200);
-    AddField('DIS_ID', 'ID Дисциплины', 100, False).
-        AddReferense('DISCIPLINES', 'DIS_ID',
-      'DIS_CAPTION', 'Дисциплина', 200);
-    AddField('TIME_ID', 'ID Пары', 100, False).
-        AddReferense('TIMES', 'TIME_ID',
+    AddField('GROUP_ID', 'ID Группы', 100, False).AddReferense('GROUPS',
+      'GROUP_ID', 'GROUP_NUMBER', 'Группа', 100);
+    AddField('LES_TYPE_ID', 'ID Типа Занятия', 100, False)
+      .AddReferense('LESSON_TYPES', 'LES_TYPE_ID', 'LES_TYPE_CAPTION',
+      'Тип Занятия', 200);
+    AddField('DIS_ID', 'ID Дисциплины', 100, False).AddReferense('DISCIPLINES',
+      'DIS_ID', 'DIS_CAPTION', 'Дисциплина', 200);
+    AddField('TIME_ID', 'ID Пары', 100, False).AddReferense('TIMES', 'TIME_ID',
       'TIME_CAPTION', 'Время', 100);
-   AddField('AUD_ID', 'ID Аудитории', 100, False).
-        AddReferense( 'AUDITORIES', 'AUD_ID',
-      'AUD_CAPTION', 'Аудитория', 100);
-   AddField('PROF_ID', 'ID Преподавателя', 100, False).
-        AddReferense( 'PROFESSORS', 'PROF_ID',
-      'PROF_NAME', 'ФИО Преподавателя', 200);
-   AddField('WEEKDAY_ID', 'ID Дня', 100, False).
-        AddReferense('WEEKDAYS', 'WEEKDAY_ID',
-      'WEEKDAY_CAPTION', 'День Недели', 100);
+    AddField('AUD_ID', 'ID Аудитории', 100, False).AddReferense('AUDITORIES',
+      'AUD_ID', 'AUD_CAPTION', 'Аудитория', 100);
+    AddField('PROF_ID', 'ID Преподавателя', 100, False)
+      .AddReferense('PROFESSORS', 'PROF_ID', 'PROF_NAME',
+      'ФИО Преподавателя', 200);
+    AddField('WEEKDAY_ID', 'ID Дня', 100, False).AddReferense('WEEKDAYS',
+      'WEEKDAY_ID', 'WEEKDAY_CAPTION', 'День Недели', 100);
   end;
   with AddTable('TIMES', 'Время') do
   begin

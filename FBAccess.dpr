@@ -8,7 +8,8 @@ uses
   ConnectionForm in 'ConnectionForm.pas' {ConnectionFormWindow},
   DirectoryForm in 'DirectoryForm.pas' {DirForm},
   SQLGenerator in 'SQLGenerator.pas',
-  AboutForm in 'AboutForm.pas' {AboutWinodw};
+  AboutForm in 'AboutForm.pas' {AboutWinodw},
+  FiltersControl in 'FiltersControl.pas';
 
 {$R *.res}
 

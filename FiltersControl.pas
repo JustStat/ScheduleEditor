@@ -4,16 +4,17 @@ interface
 
 uses
   Forms, Vcl.ComCtrls, Vcl.StdCtrls, MetaData, Vcl.Buttons, Vcl.DBGrids,
-  FireDAC.Comp.Client, Dialogs, System.WideStrUtils;
+  FireDAC.Comp.Client, Dialogs, System.WideStrUtils, Vcl.Controls;
 
 type
   TFilter = class(TTabSheet)
     FieldComboBox: TComboBox;
     OperationComboBox: TComboBox;
     ConstEdit: TEdit;
-    Close_ApplyButton: TBitBtn;
+    Decline_ApplyButton: TBitBtn;
     DeleteButton: TButton;
     procedure AcceptFilter(Sender: TObject);
+    function GetFilterParams: string;
   public
     Accepted: Boolean;
     SQLQuery: TFDQuery;
@@ -22,9 +23,10 @@ type
 type
   TFilterControl = class
     Filters: array of TFilter;
+    FilteredQuery: string;
     procedure AddFilter(PageControl: TPageControl; ATag: Integer; Grid: TDBGrid;
       ASQLQuery: TFDQuery);
-    function GetAcceptedCount : Integer;
+    function GetAcceptedCount: Integer;
     procedure DeleteFilter(Sender: TObject);
   end;
 
@@ -83,9 +85,10 @@ begin
     begin
       Parent := Filters[high(Filters)];
       Left := OperationComboBox.Left + OperationComboBox.Width + 10;
+      Anchors := [akTop, akLeft, akRight];
     end;
-    Close_ApplyButton := TBitBtn.Create(Filters[high(Filters)]);
-    with Close_ApplyButton do
+    Decline_ApplyButton := TBitBtn.Create(Filters[high(Filters)]);
+    with Decline_ApplyButton do
     begin
       Parent := Filters[high(Filters)];
       Top := ConstEdit.Top + ConstEdit.Height + 5;
@@ -95,13 +98,14 @@ begin
       Caption := 'Применить';
       OnClick := AcceptFilter;
       Tag := ATag;
+      Anchors := [akTop, akRight];
     end;
     DeleteButton := TButton.Create(Filters[high(Filters)]);
     with DeleteButton do
     begin
       Parent := Filters[high(Filters)];
-      Top := FieldComboBox.Top + FieldCombobox.Height + 5;
-      Width := FieldCombobox.Width;
+      Top := FieldComboBox.Top + FieldComboBox.Height + 5;
+      Width := FieldComboBox.Width;
       Caption := 'Удалить фильтр';
       OnClick := DeleteFilter;
       Tag := high(Filters);
@@ -112,25 +116,25 @@ end;
 
 procedure TFilterControl.DeleteFilter(Sender: TObject);
 var
-  Filter: TFilter;
+  Index: Integer;
 begin
-  Self.Filters[(Sender as TButton).Tag].Accepted := true;
-  Self.Filters[(Sender as TButton).Tag].AcceptFilter(Self.Filters[(Sender as TButton).Tag].Close_ApplyButton);
-  Self.Filters[(Sender as TButton).Tag].Free;
-  Filter := Self.Filters[high(filters)];
-  Self.Filters[(Sender as TButton).Tag] := Filter;
+  Index := (Sender as TButton).Tag;
+  Self.Filters[Index].Accepted := true;
+  Self.Filters[Index].AcceptFilter(Self.Filters[Index].Decline_ApplyButton);
+  Self.Filters[Index].Free;
+  Self.Filters[Index] := Self.Filters[high(Filters)];
+  Self.Filters[high(Filters)].DeleteButton.Tag := Index;
   SetLength(Self.Filters, Length(Self.Filters) - 1);
-
 end;
 
 function TFilterControl.GetAcceptedCount: Integer;
 var
-  i: integer;
+  i: Integer;
 begin
   Result := 0;
   for i := 0 to High(Self.Filters) do
-  if Self.Filters[i].Accepted then
-    Inc(Result);
+    if Self.Filters[i].Accepted then
+      Inc(Result);
 end;
 
 { TFilter }
@@ -138,40 +142,35 @@ end;
 procedure TFilter.AcceptFilter(Sender: TObject);
 var
   i: Integer;
-  FilterQuery: String;
-  Test: Boolean;
+  FilterQuery: string;
+  r: Integer;
 begin
   if not Self.Accepted then
   begin
     if ConstEdit.Text = '' then
+    begin
+      ShowMessage('Введите значение');
       exit;
+    end;
     Self.Accepted := true;
-    Close_ApplyButton.Kind := bkCancel;
-    Close_ApplyButton.Caption := 'Отменить';
+    Decline_ApplyButton.Kind := bkCancel;
+    Decline_ApplyButton.Caption := 'Отменить';
     Caption := FieldComboBox.Items[FieldComboBox.ItemIndex] + ' ' +
       OperationComboBox.Items[OperationComboBox.ItemIndex] + ' ' +
       ConstEdit.Text;
     FieldComboBox.Enabled := false;
     OperationComboBox.Enabled := false;
     ConstEdit.Enabled := false;
-
   end
   else
   begin
     Self.Accepted := false;
-    Close_ApplyButton.Kind := bkOk;
-    Close_ApplyButton.Caption := 'Применить';
+    Decline_ApplyButton.Kind := bkOk;
+    Decline_ApplyButton.Caption := 'Применить';
     FieldComboBox.Enabled := true;
     OperationComboBox.Enabled := true;
     ConstEdit.Enabled := true;
   end;
-  if MainFiltersController.FilterControllers[Tag].GetAcceptedCount = 0 then
-    begin
-      SQLQuery.Active := False;
-      SQLQuery.SQL.Text := GetSelectionJoin((Sender as TBitBtn).Tag);
-      SQLQuery.Active := True;
-      exit;
-    end;
   for i := 0 to High(MainFiltersController.FilterControllers[Tag].Filters) do
     if MainFiltersController.FilterControllers[Tag].Filters[i].Accepted then
       with MainFiltersController.FilterControllers[Tag].Filters[i] do
@@ -181,26 +180,43 @@ begin
         begin
           if References = Nil then
           begin
-            FilterQuery := FilterQuery + ' CAST(' + TablesMetaData.Tables[Tag].TableName +
-              '.' + FieldName + ' AS VARCHAR(100))';
+            FilterQuery := TablesMetaData.Tables[Tag].TableName + '.' +
+              FieldName;
           end
           else
           begin
-            FilterQuery := FilterQuery + ' CAST(' + References.Table + '.' +
-              References.Name + ' AS VARCHAR(100))';
+            FilterQuery := References.Table + '.' + References.Name;
           end;
+          FilterQuery := FilterQuery + ' ' + OperationComboBox.Items
+            [OperationComboBox.ItemIndex];
         end;
-        if OperationComboBox.Items[OperationComboBox.ItemIndex] = 'Начинается с...' then
-        FilterQuery := FilterQuery + ' LIKE' + ' ' + #39 + ConstEdit.Text + '%' + #39
-          + ' AND '
-         else
-        FilterQuery := FilterQuery + ' ' + OperationComboBox.Items
-          [OperationComboBox.ItemIndex] + ' ' + #39 + ConstEdit.Text + #39
-          + ' AND ';
+        SQLQuery.Active := false;
+        SQLQuery.SQL.Text := GetWhere(i, Tag, FilterQuery, SQLQuery.SQL.Text);
+        SQLQuery.Prepare;
+        if OperationComboBox.Items[OperationComboBox.ItemIndex] = 'Начинается с...'
+        then
+          SQLQuery.Params[SQLQuery.Params.Count - 1].AsString := ' LIKE' +
+            ConstEdit.Text + '%'
+        else
+          SQLQuery.Params[SQLQuery.Params.Count - 1].AsString := ConstEdit.Text;
       end;
-  SQLQuery.Active := false;
-  SQLQuery.SQL.Text := GetWhere(Tag, FilterQuery);
+  if MainFiltersController.FilterControllers[Tag].GetAcceptedCount = 0 then
+    MainFiltersController.FilterControllers[Tag].FilteredQuery := ''
+  else
+    MainFiltersController.FilterControllers[Tag].FilteredQuery :=
+      SQLQuery.SQL.Text;
+  for i := 0 to High(TablesMetaData.Tables[Tag].TableFields) do
+    if TablesMetaData.Tables[Tag].TableFields[i].Sorted <> None then
+      SQLQuery.SQL.Text := GetOrdered(TablesMetaData.Tables[Tag].TableFields[i]
+        .Sorted, Tag, MainFiltersController.FilterControllers[Tag]
+        .FilteredQuery, TablesMetaData.Tables[Tag].TableName + '.' +
+        TablesMetaData.Tables[Tag].TableFields[i].FieldName);
   SQLQuery.Active := true;
+end;
+
+function TFilter.GetFilterParams: string;
+begin
+
 end;
 
 { TMainFiltersControl }

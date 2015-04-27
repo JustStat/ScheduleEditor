@@ -33,14 +33,17 @@ object DirForm: TDirForm
     Top = 39
     Width = 477
     Height = 298
-    Anchors = [akLeft, akTop, akRight]
+    Anchors = [akLeft, akTop, akRight, akBottom]
     DataSource = DirDataSource
+    ReadOnly = True
     TabOrder = 1
     TitleFont.Charset = DEFAULT_CHARSET
     TitleFont.Color = clWindowText
     TitleFont.Height = -11
     TitleFont.Name = 'Tahoma'
     TitleFont.Style = []
+    OnCellClick = DBGrid1CellClick
+    OnDblClick = DBGrid1DblClick
     OnTitleClick = DBGrid1TitleClick
   end
   object FiltersPageControl: TPageControl
@@ -56,32 +59,40 @@ object DirForm: TDirForm
     Top = 343
     Width = 477
     Height = 60
-    Caption = 'Panel1'
+    Anchors = [akLeft, akRight, akBottom]
     TabOrder = 3
-    object Button1: TButton
+    DesignSize = (
+      477
+      60)
+    object EditRecordButton: TButton
       Left = 16
       Top = 16
       Width = 123
       Height = 25
       Caption = #1056#1077#1076#1072#1082#1090#1080#1088#1086#1074#1072#1090#1100
       TabOrder = 0
-      OnClick = Button1Click
+      Visible = False
+      OnClick = EditRecordButtonClick
     end
-    object Button2: TButton
+    object DeleteRecordButton: TButton
       Left = 145
       Top = 16
       Width = 123
       Height = 25
       Caption = #1059#1076#1072#1083#1080#1090#1100
       TabOrder = 1
+      Visible = False
+      OnClick = DeleteRecordButtonClick
     end
-    object Button3: TButton
+    object AddRecordButton: TButton
       Left = 336
       Top = 16
       Width = 123
       Height = 25
+      Anchors = [akRight, akBottom]
       Caption = #1044#1086#1073#1072#1074#1080#1090#1100
       TabOrder = 2
+      OnClick = AddRecordButtonClick
     end
   end
   object DirQuery: TFDQuery

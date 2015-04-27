@@ -26,9 +26,9 @@ type
     DeclineAll: TMenuItem;
     DeleteAll: TMenuItem;
     Panel1: TPanel;
-    Button1: TButton;
-    Button2: TButton;
-    Button3: TButton;
+    EditRecordButton: TButton;
+    DeleteRecordButton: TButton;
+    AddRecordButton: TButton;
     procedure FormShow(Sender: TObject);
     procedure AddFilterClick(Sender: TObject);
     procedure DBGrid1TitleClick(Column: TColumn);
@@ -36,7 +36,11 @@ type
     procedure DeclineAllClick(Sender: TObject);
     procedure DeleteAllClick(Sender: TObject);
     procedure FormPaint(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure EditRecordButtonClick(Sender: TObject);
+    procedure DBGrid1CellClick(Column: TColumn);
+    procedure AddRecordButtonClick(Sender: TObject);
+    procedure DeleteRecordButtonClick(Sender: TObject);
+    procedure DBGrid1DblClick(Sender: TObject);
   private
     FiltersController: TFilterControl;
   public
@@ -52,6 +56,17 @@ implementation
 
 uses RecordsEditorForm;
 
+procedure TDirForm.DBGrid1CellClick(Column: TColumn);
+begin
+  EditRecordButton.Visible := True;
+  DeleteRecordButton.Visible := True;
+end;
+
+procedure TDirForm.DBGrid1DblClick(Sender: TObject);
+begin
+  EditRecordButton.Click;
+end;
+
 procedure TDirForm.DBGrid1TitleClick(Column: TColumn);
 var
   i: integer;
@@ -64,13 +79,12 @@ begin
     if DBGrid1.Columns[i].Title.Font.Style = [fsBold] then
     begin
       r := GetRealColumnIndex(Column.Index);
-      if TablesMetaData.Tables[Tag].TableFields[r]
-        .References <> Nil then
-      DBGrid1.Columns[i].Title.Caption := TablesMetaData.Tables[Tag].TableFields[r]
-        .References.Caption
-        else
-      DBGrid1.Columns[i].Title.Caption := TablesMetaData.Tables[Tag].TableFields[r]
-        .FieldCaption;
+      if TablesMetaData.Tables[Tag].TableFields[r].References <> Nil then
+        DBGrid1.Columns[i].Title.Caption := TablesMetaData.Tables[Tag]
+          .TableFields[r].References.Caption
+      else
+        DBGrid1.Columns[i].Title.Caption := TablesMetaData.Tables[Tag]
+          .TableFields[r].FieldCaption;
       DBGrid1.Columns[i].Title.Font.Style := [];
     end;
   end;
@@ -102,7 +116,7 @@ begin
         else
           Column.Title.Caption := TablesMetaData.Tables[Tag].TableFields[r]
             .FieldCaption + ' ↓ ';
-          DBGrid1.Columns[Column.Index].Title.Font.Style := [fsBold];
+        DBGrid1.Columns[Column.Index].Title.Font.Style := [fsBold];
       end;
     Down:
       begin
@@ -118,7 +132,7 @@ begin
         DBGrid1.Columns[Column.Index].Title.Font.Style := [];
       end
   end;
-  DirQuery.Active := true;
+  DirQuery.Active := True;
 
   { if Column.Title.Font.Style = [fsBold] then
     begin
@@ -205,8 +219,8 @@ begin
         (Self.Components[i] as TDBGrid).Top := (Self.Components[i] as TDBGrid)
           .Top - FiltersPageControl.Height;
       if Self.Components[i] is TPanel then
-         (Self.Components[i] as TPanel).Top := (Self.Components[i] as TPanel)
-          .Top - FiltersPageControl.Height;
+        (Self.Components[i] as TPanel).Top := (Self.Components[i] as TPanel).Top
+          - FiltersPageControl.Height;
     end;
   end;
 end;
@@ -238,7 +252,7 @@ begin
       end;
   DirQuery.Active := false;
   DirQuery.SQL.Text := GetSelectionJoin((Sender as TForm).Tag);
-  DirQuery.Active := true;
+  DirQuery.Active := True;
   FiltersController := MainFiltersController.FilterControllers[Tag];
 end;
 
@@ -253,15 +267,13 @@ begin
     if DBGrid1.Columns[i].Visible then
     begin
       Inc(r);
-      if TablesMetaData.Tables[Tag]
-        .TableFields[r].References <> Nil then
+      if TablesMetaData.Tables[Tag].TableFields[r].References <> Nil then
       begin
-      if DBGrid1.Columns[Index].FieldName = TablesMetaData.Tables[Tag]
-        .TableFields[r].References.Name then
-        break;
-      end
-      else
         if DBGrid1.Columns[Index].FieldName = TablesMetaData.Tables[Tag]
+          .TableFields[r].References.Name then
+          break;
+      end
+      else if DBGrid1.Columns[Index].FieldName = TablesMetaData.Tables[Tag]
         .TableFields[r].FieldName then
         break
     end;
@@ -276,7 +288,7 @@ begin
   FiltersPageControl.ActivePageIndex := FiltersPageControl.PageCount - 1;
   if not FiltersPageControl.Visible then
   begin
-    FiltersPageControl.Visible := true;
+    FiltersPageControl.Visible := True;
     Self.Height := Self.Height + FiltersPageControl.Height;
     for i := 0 to Self.ComponentCount - 1 do
     begin
@@ -290,13 +302,48 @@ begin
   end;
 end;
 
-procedure TDirForm.Button1Click(Sender: TObject);
+procedure TDirForm.AddRecordButtonClick(Sender: TObject);
 var
-Form : TEditorForm;
+  Form: TEditorForm;
 begin
   Form := TEditorForm.Create(Application);
   Form.Tag := Self.Tag;
+  SetLength(Form.RecordFields, High(TablesMetaData.Tables[Tag].TableFields));
+  Form.Caption := 'Добавление записи';
+  Form.Kind := True;
   Form.ShowModal;
+  DirQuery.Active := false;
+  DirQuery.SQL.Text := GetSelectionJoin(Tag);
+  DirQuery.Active := True;
+end;
+
+procedure TDirForm.EditRecordButtonClick(Sender: TObject);
+var
+  Form: TEditorForm;
+  i, j: integer;
+  Test: integer;
+  TransQuery: TFDQuery;
+  TransSource: TDataSource;
+begin
+  Form := TEditorForm.Create(Application);
+  Form.Tag := Self.Tag;
+  Form.Kind := false;
+  for i := 1 to High(TablesMetaData.Tables[Tag].TableFields) do
+  begin
+    SetLength(Form.NativeValues, Length(Form.NativeValues) + 1);
+    if TablesMetaData.Tables[Tag].TableFields[i].References <> Nil then
+      Form.NativeValues[High(Form.NativeValues)] :=
+        DBGrid1.DataSource.DataSet.FieldByName
+        (TablesMetaData.Tables[Tag].TableFields[i].References.Name).AsString
+    else
+      Form.NativeValues[High(Form.NativeValues)] :=
+        DBGrid1.DataSource.DataSet.FieldByName
+        (TablesMetaData.Tables[Tag].TableFields[i].FieldName).AsString;
+  end;
+  Form.Show;
+  DirQuery.Active := false;
+  DirQuery.SQL.Text := GetSelectionJoin(Tag);
+  DirQuery.Active := True;
 end;
 
 procedure TDirForm.AcceptAllClick(Sender: TObject);
@@ -318,7 +365,7 @@ var
 begin
   for i := 0 to High(MainFiltersController.FilterControllers[Tag].Filters) do
   begin
-    MainFiltersController.FilterControllers[Tag].Filters[i].Accepted := true;
+    MainFiltersController.FilterControllers[Tag].Filters[i].Accepted := True;
     with MainFiltersController.FilterControllers[Tag].Filters[i] do
       AcceptFilter(Decline_ApplyButton);
   end;
@@ -331,6 +378,23 @@ begin
   for i := 0 to High(MainFiltersController.FilterControllers[Tag].Filters) do
     MainFiltersController.FilterControllers[Tag].Filters[i].Free;
   SetLength(MainFiltersController.FilterControllers[Tag].Filters, 0);
+end;
+
+procedure TDirForm.DeleteRecordButtonClick(Sender: TObject);
+var
+  i: integer;
+  Params: array of String;
+  ID: integer;
+begin
+   ID := DBGrid1.Fields[0].Value;
+  DirQuery.Active := false;
+  DirQuery.SQL.Text := 'DELETE FROM ' + TablesMetaData.Tables[Self.Tag]
+    .TableName + ' WHERE ID = :0;';
+  DirQuery.Params[0].Value := ID;
+  DirQuery.ExecSQL;
+  DirQuery.Active := false;
+  DirQuery.SQL.Text := GetSelectionJoin(Tag);
+  DirQuery.Active := True;
 end;
 
 end.

@@ -1,2 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<BorlandProject/>
+<BorlandProject>
+  <Transactions>
+    <Transaction>2015.04.25 23:12:42.936,=Y:\GitHub\ScheduleEditor\Unit2.pas</Transaction>
+    <Transaction>2015.04.25 23:14:40.461,Y:\GitHub\ScheduleEditor\ReferenceEditorForm.pas=Y:\GitHub\ScheduleEditor\Unit2.pas</Transaction>
+    <Transaction>2015.04.25 23:14:40.461,Y:\GitHub\ScheduleEditor\ReferenceEditorForm.dfm=Y:\GitHub\ScheduleEditor\Unit2.dfm</Transaction>
+  </Transactions>
+</BorlandProject>

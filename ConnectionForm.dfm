@@ -17,7 +17,7 @@ object ConnectionFormWindow: TConnectionFormWindow
     Params.Strings = (
       'User_Name=sysdba'
       'Password=masterkey'
-      'Database=C:\schedule_rus.fdb'
+      'Database=C:\schedule_rus_edition.fdb'
       'CharacterSet=UTF8'
       'DriverID=FB')
     LoginPrompt = False

@@ -191,18 +191,17 @@ begin
             [OperationComboBox.ItemIndex];
         end;
         SQLQuery.Active := false;
-        SQLQuery.SQL.Text := GetWhere(i, Tag, FilterQuery, SQLQuery.SQL.Text);
+        SQLQuery.SQL.Text := GetSelectJoinWhere(i, Tag, FilterQuery, SQLQuery.SQL.Text);
         SQLQuery.Prepare;
         if OperationComboBox.Items[OperationComboBox.ItemIndex] = 'Начинается с...'
         then
           SQLQuery.Params[SQLQuery.Params.Count - 1].AsString := ' LIKE' +
             ConstEdit.Text + '%'
         else
-          SQLQuery.Params[SQLQuery.Params.Count - 1].AsString := ConstEdit.Text;
+          SQLQuery.Params[SQLQuery.Params.Count - 1].Value := ConstEdit.Text;
       end;
   if MainFiltersController.FilterControllers[Tag].GetAcceptedCount = 0 then
-    MainFiltersController.FilterControllers[Tag].FilteredQuery := ''
-  else
+    SQLQuery.SQL.Text := GetSelectionJoin(Tag);
     MainFiltersController.FilterControllers[Tag].FilteredQuery :=
       SQLQuery.SQL.Text;
   for i := 0 to High(TablesMetaData.Tables[Tag].TableFields) do
